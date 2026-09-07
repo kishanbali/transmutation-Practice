@@ -1,0 +1,27 @@
+name: Agentic AI Developer
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  run-agent:
+    if: contains(github.event.issue.labels.*.name, 'ai-build') || contains(github.event.comment.body, '/agent')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Coding Agent
+        uses: anthropic-labs/claude-code-action@v1 # Automated coding agent
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: ${{ github.event.issue.body || github.event.comment.body }}

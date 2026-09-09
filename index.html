@@ -10,14 +10,13 @@
         :root { --bg: #06080c; --card: #0f131c; --accent: #38bdf8; --green: #22c55e; --text: #f1f5f9; --gold: #facc15; --lock: #ef4444; }
         body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1rem; box-sizing: border-box; touch-action: manipulation; }
         
-        .card { background: var(--card); border: 1px solid #1e293b; padding: 1.8rem; border-radius: 20px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; box-sizing: border-box; }
+        .card { background: var(--card); border: 1px solid #1e293b; padding: 1.8rem; border-radius: 20px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; box-sizing: border-box; z-index: 1; }
         h1 { font-size: 1.3rem; color: var(--accent); margin: 0 0 0.2rem 0; text-transform: uppercase; letter-spacing: 1.5px; }
         p.subtitle { color: #94a3b8; font-size: 0.8rem; margin-bottom: 1.2rem; }
 
         /* Day Stepper */
         .day-stepper { display: flex; align-items: center; justify-content: space-between; background: #000; border: 1px solid #334155; padding: 0.5rem 0.8rem; border-radius: 12px; margin-bottom: 1rem; }
         .day-stepper button { width: 44px; height: 38px; font-size: 1.1rem; background: #1e293b; color: var(--text); border: 1px solid #475569; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .day-stepper button:active { background: #334155; }
         .day-title { font-weight: bold; color: var(--gold); font-size: 0.95rem; font-family: monospace; }
 
         /* Battery Visual */
@@ -29,16 +28,31 @@
 
         .battery-blocks { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; }
         .block { border-right: 2px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 4px; font-size: 0.65rem; font-weight: bold; color: #475569; }
-        .block.charged { color: var(--green); font-weight: 900; }
 
         /* Meters */
         .charge-percent { font-family: monospace; font-size: 1.1rem; font-weight: bold; color: var(--green); margin-top: 0.4rem; letter-spacing: 1px; }
         .timer { font-size: 2.5rem; font-family: monospace; font-weight: bold; color: var(--text); margin: 0.2rem 0; }
         .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #334155; }
 
-        /* Action Buttons */
-        button.main-btn { background: var(--green); color: #000; border: none; padding: 1.1rem 2rem; font-size: 1.1rem; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 0.8rem; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; }
-        button.main-btn:active { opacity: 0.85; }
+        /* Guarantees clickability above all other elements */
+        button.main-btn { 
+            position: relative;
+            z-index: 100;
+            pointer-events: auto !important;
+            background: var(--green); 
+            color: #000; 
+            border: none; 
+            padding: 1.1rem 2rem; 
+            font-size: 1.1rem; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 0.8rem; 
+            transition: all 0.2s ease; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        button.main-btn:active { opacity: 0.85; transform: scale(0.98); }
         button.main-btn.active { background: #ef4444; color: #fff; }
         button.pay-btn { background: var(--gold); color: #000; border: none; padding: 1rem 1.5rem; font-size: 1rem; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 0.8rem; display: none; -webkit-tap-highlight-color: transparent; }
 
@@ -53,15 +67,11 @@
         /* Footer Controls */
         .footer-controls { margin-top: 1.5rem; border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
         .btn-link { background: none; border: none; color: #64748b; font-size: 0.75rem; text-decoration: underline; cursor: pointer; padding: 0.4rem; -webkit-tap-highlight-color: transparent; }
-        .btn-link:hover { color: var(--accent); }
 
-        .footnote { margin-top: 1rem; font-size: 0.7rem; color: #475569; text-align: center; font-weight: 500; }
-
-        /* Modals */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; box-sizing: border-box; }
+        /* Modals: Hidden by default with pointer-events: none when inactive */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; box-sizing: border-box; pointer-events: none; }
+        .modal.open { display: flex; pointer-events: auto; }
         .modal-content { background: #0f172a; border: 2px solid var(--gold); border-radius: 20px; padding: 2rem; max-width: 480px; width:100%; text-align: center; box-shadow: 0 0 30px rgba(250, 204, 21, 0.3); box-sizing: border-box; }
-        .modal-content h2 { color: var(--gold); font-size: 1.3rem; margin-top: 0; }
-        .modal-content p { color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; }
 
         @keyframes pulseCharge { 0% { opacity: 0.85; } 100% { opacity: 1; filter: drop-shadow(0 0 8px var(--green)); } }
     </style>
@@ -74,9 +84,9 @@
 
         <!-- Day Selector -->
         <div class="day-stepper">
-            <button id="prevDayBtn" type="button" aria-label="Previous Day">&lt;</button>
+            <button id="prevDayBtn" onclick="changeDay(-1)" type="button" aria-label="Previous Day">&lt;</button>
             <div class="day-title" id="dayDisplay">DAY 1 OF 112</div>
-            <button id="nextDayBtn" type="button" aria-label="Next Day">&gt;</button>
+            <button id="nextDayBtn" onclick="changeDay(1)" type="button" aria-label="Next Day">&gt;</button>
         </div>
 
         <div class="badge" id="phaseBadge">System Discharged</div>
@@ -92,10 +102,10 @@
             <div class="battery-body">
                 <div class="battery-fill" id="batteryFill"></div>
                 <div class="battery-blocks">
-                    <div class="block" id="blk1"><span>1M</span></div>
-                    <div class="block" id="blk2"><span>3M</span></div>
-                    <div class="block" id="blk3"><span>6M</span></div>
-                    <div class="block" id="blk4"><span>9M</span></div>
+                    <div class="block"><span>1M</span></div>
+                    <div class="block"><span>3M</span></div>
+                    <div class="block"><span>6M</span></div>
+                    <div class="block"><span>9M</span></div>
                 </div>
             </div>
             <div class="battery-tip"></div>
@@ -104,7 +114,8 @@
         <div class="charge-percent" id="chargeMeter">0.0% CHARGED</div>
         <div class="timer" id="timer">00:00</div>
 
-        <button class="main-btn" id="toggleBtn" type="button">Initiate Charge Session</button>
+        <!-- Direct inline fallback onclick event -->
+        <button class="main-btn" id="toggleBtn" onclick="handleToggleClick(event)" type="button">Initiate Charge Session</button>
 
         <div class="metrics">
             <div class="metric"><span>Access Tier:</span><span id="tierTypeMeter">Free Tier (Days 1-12)</span></div>
@@ -113,24 +124,19 @@
             <div class="metric"><span>Brain State:</span><span id="stateMeter">Physical Grounding</span></div>
         </div>
 
-        <!-- Footer Actions & Footnotes -->
+        <!-- Footer Actions -->
         <div class="footer-controls">
-            <button class="btn-link" id="resetBtn" type="button">Reset Progress to Day 1</button>
-            <button class="btn-link" id="disclaimerBtn" type="button">Health &amp; Safety Disclaimer</button>
-        </div>
-
-        <div class="footnote">
-            @2026 KishanBali/KEMP Wisdom Publications
+            <button class="btn-link" onclick="resetProgress()" type="button">Reset Progress to Day 1</button>
+            <button class="btn-link" onclick="toggleModal('disclaimerModal', true)" type="button">Health &amp; Safety Disclaimer</button>
         </div>
     </div>
 
     <!-- Accreditation Modal -->
     <div class="modal" id="completionModal">
         <div class="modal-content">
-            <h2>KEMP EYE AI 👁️ Accreditation</h2>
-            <p><strong>Neuro-coherency practice on frequency improvement on congratulations on completion!</strong></p>
-            <p>You have successfully completed the full 112-Day Transmutation Sequence across all 10 neural resonance tiers.</p>
-            <button class="main-btn" style="background:var(--gold); color:#000;" id="claimBtn">Claim Accreditation</button>
+            <h2 style="color:var(--gold)">KEMP EYE AI 👁️ Accreditation</h2>
+            <p>Congratulations on completing the full 112-Day Transmutation Sequence!</p>
+            <button class="main-btn" style="background:var(--gold); color:#000;" onclick="toggleModal('completionModal', false)">Claim Accreditation</button>
         </div>
     </div>
 
@@ -138,37 +144,24 @@
     <div class="modal" id="disclaimerModal">
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0;">Health &amp; Safety Disclaimer</h3>
-            <p style="text-align:left; font-size:0.8rem;">
-                This software uses acoustic brainwave entrainment (solfeggio carriers &amp; low-frequency pulsing).
-                <br><br>
-                1. <strong>Epilepsy Notice:</strong> Do not use if prone to sound-triggered seizures.
-                <br>
-                2. <strong>Operation:</strong> Never listen while driving or operating heavy machinery.
-                <br>
-                3. <strong>Notice:</strong> Protocol is intended for energetic focus practice only and does not provide medical diagnoses or treatment.
+            <p style="text-align:left; font-size:0.8rem; color:#cbd5e1;">
+                This software uses acoustic brainwave entrainment.<br><br>
+                1. <strong>Epilepsy Notice:</strong> Do not use if prone to sound-triggered seizures.<br>
+                2. <strong>Operation:</strong> Never listen while driving or operating heavy machinery.<br>
             </p>
-            <button class="btn-link" style="color:var(--accent); font-size:0.9rem;" id="closeDisclaimerBtn">Close Disclaimer</button>
+            <button class="btn-link" style="color:var(--accent); font-size:0.9rem;" onclick="toggleModal('disclaimerModal', false)">Close Disclaimer</button>
         </div>
     </div>
 
     <script>
-        // Safe Storage Helpers to prevent Incognito/Private Browsing crashes
         function safeGet(key, defaultVal) {
-            try {
-                const val = localStorage.getItem(key);
-                return val !== null ? val : defaultVal;
-            } catch (e) { return defaultVal; }
+            try { const val = localStorage.getItem(key); return val !== null ? val : defaultVal; } 
+            catch (e) { return defaultVal; }
         }
-
         function safeSet(key, val) {
             try { localStorage.setItem(key, val); } catch (e) {}
         }
 
-        function safeClear() {
-            try { localStorage.clear(); } catch (e) {}
-        }
-
-        // Global State Variables
         let currentDay = parseInt(safeGet('kemp_current_day', '1')) || 1;
         let unlockedBlocks = JSON.parse(safeGet('kemp_unlocked_blocks', '[]')) || [];
 
@@ -179,7 +172,6 @@
 
         let droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null;
 
-        // Block Calculation Helper
         function getBlockForDay(day) {
             if (day <= 12) return 0;
             return Math.floor((day - 13) / 10) + 1;
@@ -187,8 +179,7 @@
 
         function isDayUnlocked(day) {
             if (day <= 12) return true;
-            const block = getBlockForDay(day);
-            return unlockedBlocks.includes(block);
+            return unlockedBlocks.includes(getBlockForDay(day));
         }
 
         function getDailyAudioProfile(day) {
@@ -224,7 +215,6 @@
             const unlocked = isDayUnlocked(currentDay);
             const toggleBtn = document.getElementById('toggleBtn');
             const lockShield = document.getElementById('lockShield');
-            const payBtn = document.getElementById('payBtn');
 
             if (currentDay <= 12) {
                 document.getElementById('tierTypeMeter').innerText = "12 Days Free Tier";
@@ -241,7 +231,7 @@
                 } else {
                     lockShield.style.display = "block";
                     document.getElementById('lockMsg').innerText = 🔒 Premium Locked: Days ${startD} to ${endD};
-                    payBtn.style.display = "block";
+                    document.getElementById('payBtn').style.display = "block";
                     toggleBtn.style.display = "none";
                     if (isRunning) stopEngine();
                 }
@@ -249,14 +239,23 @@
             safeSet('kemp_current_day', currentDay);
         }
 
-        // Direct Audio Setup Handler (Fixes Android/Desktop Autoplay Security)
+        // Global handler attached directly to HTML button
+        window.handleToggleClick = function(e) {
+            if (e) e.preventDefault();
+            if (!isRunning) startEngine(); else stopEngine();
+        };
+
         function unlockAudioContext() {
-            if (!audioCtx) {
-                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioCtxClass();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+            try {
+                if (!audioCtx) {
+                    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioCtxClass();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch(err) {
+                alert("Audio Engine initialize error: " + err.message);
             }
         }
 
@@ -266,58 +265,59 @@
 
             unlockAudioContext();
 
-            const profile = getDailyAudioProfile(currentDay);
+            try {
+                const profile = getDailyAudioProfile(currentDay);
 
-            masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
 
-            filterNode = audioCtx.createBiquadFilter();
-            filterNode.type = 'lowpass';
-            filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
+                filterNode = audioCtx.createBiquadFilter();
+                filterNode.type = 'lowpass';
+                filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
 
-            // Carrier Tone
-            droneOsc = audioCtx.createOscillator();
-            droneOsc.type = 'sine';
-            droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
+                droneOsc = audioCtx.createOscillator();
+                droneOsc.type = 'sine';
+                droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
 
-            // Harmonic
-            harmonicOsc = audioCtx.createOscillator();
-            harmonicOsc.type = 'triangle';
-            harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
+                harmonicOsc = audioCtx.createOscillator();
+                harmonicOsc.type = 'triangle';
+                harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
 
-            const harmonicGain = audioCtx.createGain();
-            harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                const harmonicGain = audioCtx.createGain();
+                harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
 
-            // Entrainment Pulse Generator (Modulates Master Gain)
-            pulseOsc = audioCtx.createOscillator();
-            pulseOsc.type = 'sine';
-            pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
+                pulseOsc = audioCtx.createOscillator();
+                pulseOsc.type = 'sine';
+                pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
 
-            const lfoGain = audioCtx.createGain();
-            lfoGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
 
-            pulseOsc.connect(lfoGain);
-            lfoGain.connect(masterGain.gain);
+                pulseOsc.connect(lfoGain);
+                lfoGain.connect(masterGain.gain);
 
-            droneOsc.connect(filterNode);
-            harmonicOsc.connect(harmonicGain);
-            harmonicGain.connect(filterNode);
-            filterNode.connect(masterGain);
-            masterGain.connect(audioCtx.destination);
+                droneOsc.connect(filterNode);
+                harmonicOsc.connect(harmonicGain);
+                harmonicGain.connect(filterNode);
+                filterNode.connect(masterGain);
+                masterGain.connect(audioCtx.destination);
 
-            droneOsc.start();
-            harmonicOsc.start();
-            pulseOsc.start();
+                droneOsc.start();
+                harmonicOsc.start();
+                pulseOsc.start();
 
-            isRunning = true;
-            startTime = Date.now();
-            const toggleBtn = document.getElementById('toggleBtn');
-            toggleBtn.innerText = "Pause Charge Session";
-            toggleBtn.classList.add('active');
-            document.getElementById('batteryCasing').classList.add('charging');
+                isRunning = true;
+                startTime = Date.now();
+                const toggleBtn = document.getElementById('toggleBtn');
+                toggleBtn.innerText = "Pause Charge Session";
+                toggleBtn.classList.add('active');
+                document.getElementById('batteryCasing').classList.add('charging');
 
-            if (timerLoop) clearInterval(timerLoop);
-            timerLoop = setInterval(updateEngine, 1000);
+                if (timerLoop) clearInterval(timerLoop);
+                timerLoop = setInterval(updateEngine, 1000);
+            } catch (err) {
+                alert("Failed to start sound engine: " + err.message);
+            }
         }
 
         function stopEngine() {
@@ -343,7 +343,7 @@
             if (elapsed >= 720) {
                 stopEngine();
                 if (currentDay === 112) {
-                    document.getElementById('completionModal').style.display = "flex";
+                    toggleModal('completionModal', true);
                 } else {
                     alert(Day ${currentDay} Complete! Advancing to Day ${currentDay + 1}.);
                     currentDay++;
@@ -361,77 +361,30 @@
             document.getElementById('chargeMeter').innerText = ${pct}% CHARGED;
         }
 
-        // Attach Event Listeners Safely
-        document.addEventListener('DOMContentLoaded', () => {
+        window.changeDay = function(delta) {
+            if (delta === -1 && currentDay > 1) currentDay--;
+            if (delta === 1 && currentDay < 112) currentDay++;
             updateDayUI();
+            if (isRunning) startEngine();
+        };
 
-            document.getElementById('toggleBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!isRunning) startEngine(); else stopEngine();
-            });
+        window.resetProgress = function() {
+            if (confirm("Reset progress back to Day 1?")) {
+                localStorage.clear();
+                currentDay = 1;
+                unlockedBlocks = [];
+                updateDayUI();
+            }
+        };
 
-            document.getElementById('prevDayBtn').addEventListener('click', () => {
-                if (currentDay > 1) { currentDay--; updateDayUI(); if (isRunning) startEngine(); }
-            });
+        window.toggleModal = function(id, open) {
+            const el = document.getElementById(id);
+            if (open) el.classList.add('open');
+            else el.classList.remove('open');
+        };
 
-            document.getElementById('nextDayBtn').addEventListener('click', () => {
-                if (currentDay < 112) { currentDay++; updateDayUI(); if (isRunning) startEngine(); }
-            });
-
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                if (confirm("Reset progress back to Day 1?")) {
-                    safeClear();
-                    currentDay = 1;
-                    unlockedBlocks = [];
-                    updateDayUI();
-                }
-            });
-
-            document.getElementById('disclaimerBtn').addEventListener('click', () => {
-                document.getElementById('disclaimerModal').style.display = "flex";
-            });
-
-            document.getElementById('closeDisclaimerBtn').addEventListener('click', () => {
-                document.getElementById('disclaimerModal').style.display = "none";
-            });
-
-            document.getElementById('claimBtn').addEventListener('click', () => {
-                document.getElementById('completionModal').style.display = "none";
-            });
-
-            document.getElementById('payBtn').addEventListener('click', () => {
-                const block = getBlockForDay(currentDay);
-                const startD = 13 + (block - 1) * 10;
-                const endD = Math.min(112, 12 + block * 10);
-
-                const options = {
-                    "key": "rzp_test_YOUR_KEY_HERE",
-                    "amount": 99900,
-                    "currency": "INR",
-                    "name": "KEMP Wisdom Publications",
-                    "description": Unlock Phase Days ${startD}-${endD},
-                    "handler": function (response) {
-                        if (!unlockedBlocks.includes(block)) {
-                            unlockedBlocks.push(block);
-                            safeSet('kemp_unlocked_blocks', JSON.stringify(unlockedBlocks));
-                        }
-                        updateDayUI();
-                    },
-                    "theme": { "color": "#38bdf8" }
-                };
-
-                if (window.Razorpay) {
-                    const rzp = new Razorpay(options);
-                    rzp.open();
-                } else {
-                    if (confirm([Razorpay Demo] Unlock Phase for Days ${startD}-${endD}?)) {
-                        unlockedBlocks.push(block);
-                        safeSet('kemp_unlocked_blocks', JSON.stringify(unlockedBlocks));
-                        updateDayUI();
-                    }
-                }
-            });
-        });
+        // Initialize UI immediately
+        updateDayUI();
     </script>
 </body>
 </html>

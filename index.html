@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KEMP EYE AI - 112-Day Neuro-Coherency Engine</title>
-    <!-- Razorpay SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Deferred Razorpay SDK so adblockers/Incognito won't freeze page loading -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     <style>
         :root { --bg: #06080c; --card: #0f131c; --accent: #38bdf8; --green: #22c55e; --text: #f1f5f9; --gold: #facc15; --lock: #ef4444; }
         body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1rem; box-sizing: border-box; touch-action: manipulation; }
@@ -34,7 +34,7 @@
         .timer { font-size: 2.5rem; font-family: monospace; font-weight: bold; color: var(--text); margin: 0.2rem 0; }
         .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #334155; }
 
-        /* Guarantees clickability above all other elements */
+        /* Interactive Main Button */
         button.main-btn { 
             position: relative;
             z-index: 100;
@@ -50,6 +50,7 @@
             width: 100%; 
             margin-top: 0.8rem; 
             transition: all 0.2s ease; 
+            user-select: none;
             -webkit-tap-highlight-color: transparent; 
         }
         button.main-btn:active { opacity: 0.85; transform: scale(0.98); }
@@ -68,7 +69,10 @@
         .footer-controls { margin-top: 1.5rem; border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
         .btn-link { background: none; border: none; color: #64748b; font-size: 0.75rem; text-decoration: underline; cursor: pointer; padding: 0.4rem; -webkit-tap-highlight-color: transparent; }
 
-        /* Modals: Hidden by default with pointer-events: none when inactive */
+        /* Status console for debugging */
+        #debugStatus { font-size: 0.7rem; color: #64748b; margin-top: 0.5rem; min-height: 1rem; font-family: monospace; }
+
+        /* Modals */
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; box-sizing: border-box; pointer-events: none; }
         .modal.open { display: flex; pointer-events: auto; }
         .modal-content { background: #0f172a; border: 2px solid var(--gold); border-radius: 20px; padding: 2rem; max-width: 480px; width:100%; text-align: center; box-shadow: 0 0 30px rgba(250, 204, 21, 0.3); box-sizing: border-box; }
@@ -114,8 +118,10 @@
         <div class="charge-percent" id="chargeMeter">0.0% CHARGED</div>
         <div class="timer" id="timer">00:00</div>
 
-        <!-- Direct inline fallback onclick event -->
-        <button class="main-btn" id="toggleBtn" onclick="handleToggleClick(event)" type="button">Initiate Charge Session</button>
+        <!-- Main Button with inline fallback -->
+        <button class="main-btn" id="toggleBtn" onclick="toggleSession()" type="button">Initiate Charge Session</button>
+
+        <div id="debugStatus">Ready</div>
 
         <div class="metrics">
             <div class="metric"><span>Access Tier:</span><span id="tierTypeMeter">Free Tier (Days 1-12)</span></div>
@@ -154,23 +160,44 @@
     </div>
 
     <script>
+        // Incognito Safety Fallback Storage
+        const memoryStorage = {};
         function safeGet(key, defaultVal) {
-            try { const val = localStorage.getItem(key); return val !== null ? val : defaultVal; } 
-            catch (e) { return defaultVal; }
+            try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                    const val = window.localStorage.getItem(key);
+                    return val !== null ? val : defaultVal;
+                }
+            } catch (e) { }
+            return memoryStorage[key] !== undefined ? memoryStorage[key] : defaultVal;
         }
+
         function safeSet(key, val) {
-            try { localStorage.setItem(key, val); } catch (e) {}
+            try {
+                if (typeof window !== 'undefined' && window.localStorage) {
+                    window.localStorage.setItem(key, val);
+                    return;
+                }
+            } catch (e) { }
+            memoryStorage[key] = String(val);
         }
 
         let currentDay = parseInt(safeGet('kemp_current_day', '1')) || 1;
-        let unlockedBlocks = JSON.parse(safeGet('kemp_unlocked_blocks', '[]')) || [];
+        let unlockedBlocks = [];
+        try { unlockedBlocks = JSON.parse(safeGet('kemp_unlocked_blocks', '[]')) || []; } catch(e) {}
 
         let audioCtx = null;
         let isRunning = false;
         let startTime = 0;
         let timerLoop = null;
+        let lastClickTime = 0;
 
         let droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null;
+
+        function logStatus(msg) {
+            const el = document.getElementById('debugStatus');
+            if (el) el.innerText = msg;
+        }
 
         function getBlockForDay(day) {
             if (day <= 12) return 0;
@@ -239,85 +266,106 @@
             safeSet('kemp_current_day', currentDay);
         }
 
-        // Global handler attached directly to HTML button
-        window.handleToggleClick = function(e) {
-            if (e) e.preventDefault();
-            if (!isRunning) startEngine(); else stopEngine();
-        };
-
-        function unlockAudioContext() {
-            try {
-                if (!audioCtx) {
-                    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioCtxClass();
+        async function unlockAudioContext() {
+            if (!audioCtx) {
+                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtxClass) {
+                    throw new Error("Web Audio API not supported");
                 }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-            } catch(err) {
-                alert("Audio Engine initialize error: " + err.message);
+                audioCtx = new AudioCtxClass();
             }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+            return audioCtx;
         }
 
-        function startEngine() {
-            if (!isDayUnlocked(currentDay)) return;
-            if (isRunning) stopEngine();
+        window.toggleSession = async function() {
+            const now = Date.now();
+            if (now - lastClickTime < 350) return; // Prevent double firing
+            lastClickTime = now;
 
-            unlockAudioContext();
+            if (!isDayUnlocked(currentDay)) {
+                alert("This day is locked.");
+                return;
+            }
+
+            if (isRunning) {
+                stopEngine();
+                logStatus("Session Paused");
+                return;
+            }
 
             try {
-                const profile = getDailyAudioProfile(currentDay);
+                logStatus("Initializing sound engine...");
+                await unlockAudioContext();
+                startEngine();
+                logStatus("Session Active");
+            } catch (err) {
+                console.error("Audio error:", err);
+                logStatus("Audio Error: " + err.message);
+                alert("Sound Engine Error: " + err.message);
+                stopEngine();
+            }
+        };
 
-                masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        function startEngine() {
+            if (!audioCtx) return;
 
-                filterNode = audioCtx.createBiquadFilter();
-                filterNode.type = 'lowpass';
-                filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
+            const profile = getDailyAudioProfile(currentDay);
 
-                droneOsc = audioCtx.createOscillator();
-                droneOsc.type = 'sine';
-                droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
 
-                harmonicOsc = audioCtx.createOscillator();
-                harmonicOsc.type = 'triangle';
-                harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
 
-                const harmonicGain = audioCtx.createGain();
-                harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            droneOsc = audioCtx.createOscillator();
+            droneOsc.type = 'sine';
+            droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
 
-                pulseOsc = audioCtx.createOscillator();
-                pulseOsc.type = 'sine';
-                pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
+            harmonicOsc = audioCtx.createOscillator();
+            harmonicOsc.type = 'triangle';
+            harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
 
-                const lfoGain = audioCtx.createGain();
-                lfoGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            const harmonicGain = audioCtx.createGain();
+            harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
 
-                pulseOsc.connect(lfoGain);
-                lfoGain.connect(masterGain.gain);
+            pulseOsc = audioCtx.createOscillator();
+            pulseOsc.type = 'sine';
+            pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
 
-                droneOsc.connect(filterNode);
-                harmonicOsc.connect(harmonicGain);
-                harmonicGain.connect(filterNode);
-                filterNode.connect(masterGain);
-                masterGain.connect(audioCtx.destination);
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
 
-                droneOsc.start();
-                harmonicOsc.start();
-                pulseOsc.start();
+            pulseOsc.connect(lfoGain);
+            lfoGain.connect(masterGain.gain);
 
-                isRunning = true;
-                startTime = Date.now();
-                const toggleBtn = document.getElementById('toggleBtn');
+            droneOsc.connect(filterNode);
+            harmonicOsc.connect(harmonicGain);
+            harmonicGain.connect(filterNode);
+            filterNode.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+
+            droneOsc.start();
+            harmonicOsc.start();
+            pulseOsc.start();
+
+            isRunning = true;
+            startTime = Date.now();
+            
+            const toggleBtn = document.getElementById('toggleBtn');
+            if (toggleBtn) {
                 toggleBtn.innerText = "Pause Charge Session";
                 toggleBtn.classList.add('active');
-                document.getElementById('batteryCasing').classList.add('charging');
-
-                if (timerLoop) clearInterval(timerLoop);
-                timerLoop = setInterval(updateEngine, 1000);
-            } catch (err) {
-                alert("Failed to start sound engine: " + err.message);
             }
+            
+            const casing = document.getElementById('batteryCasing');
+            if (casing) casing.classList.add('charging');
+
+            if (timerLoop) clearInterval(timerLoop);
+            timerLoop = setInterval(updateEngine, 1000);
         }
 
         function stopEngine() {
@@ -328,11 +376,16 @@
                 if (pulseOsc) { pulseOsc.stop(); pulseOsc.disconnect(); }
             } catch(e) {}
 
-            clearInterval(timerLoop);
+            if (timerLoop) clearInterval(timerLoop);
+            
             const toggleBtn = document.getElementById('toggleBtn');
-            toggleBtn.innerText = "Resume Charge Session";
-            toggleBtn.classList.remove('active');
-            document.getElementById('batteryCasing').classList.remove('charging');
+            if (toggleBtn) {
+                toggleBtn.innerText = "Resume Charge Session";
+                toggleBtn.classList.remove('active');
+            }
+            
+            const casing = document.getElementById('batteryCasing');
+            if (casing) casing.classList.remove('charging');
         }
 
         function updateEngine() {
@@ -342,6 +395,7 @@
 
             if (elapsed >= 720) {
                 stopEngine();
+                logStatus("Day Complete!");
                 if (currentDay === 112) {
                     toggleModal('completionModal', true);
                 } else {
@@ -365,15 +419,19 @@
             if (delta === -1 && currentDay > 1) currentDay--;
             if (delta === 1 && currentDay < 112) currentDay++;
             updateDayUI();
-            if (isRunning) startEngine();
+            if (isRunning) {
+                stopEngine();
+                toggleSession();
+            }
         };
 
         window.resetProgress = function() {
             if (confirm("Reset progress back to Day 1?")) {
-                localStorage.clear();
+                try { localStorage.clear(); } catch(e){}
                 currentDay = 1;
                 unlockedBlocks = [];
                 updateDayUI();
+                logStatus("Progress Reset");
             }
         };
 
@@ -383,8 +441,18 @@
             else el.classList.remove('open');
         };
 
-        // Initialize UI immediately
-        updateDayUI();
+        // DOM Event Listener Binding Fallback
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDayUI();
+            
+            const btn = document.getElementById('toggleBtn');
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.toggleSession();
+                });
+            }
+        });
     </script>
 </body>
 </html>

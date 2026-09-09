@@ -3,56 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transmutation Battery Engine</title>
+    <title>KEMP EYE AI - 112-Day Neuro-Coherency Engine</title>
+    <!-- Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        :root { --bg: #0a0c10; --card: #12161f; --accent: #38bdf8; --green: #22c55e; --text: #f1f5f9; }
-        body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1rem; box-sizing: border-box; }
-        .card { background: var(--card); border: 1px solid #1e293b; padding: 2rem; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-        h1 { font-size: 1.4rem; color: var(--accent); margin: 0 0 0.3rem 0; text-transform: uppercase; letter-spacing: 1px; }
-        p { color: #94a3b8; font-size: 0.8rem; margin-bottom: 1.5rem; }
-
-        /* Battery Visual Casing */
-        .battery-container { display: flex; align-items: center; justify-content: center; margin: 1.2rem 0; }
-        .battery-body { width: 100%; height: 60px; border: 3px solid #334155; border-radius: 12px; padding: 4px; position: relative; background: #000; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); display: flex; align-items: center; }
-        .battery-tip { width: 10px; height: 26px; background: #334155; border-radius: 0 4px 4px 0; margin-left: 3px; }
+        :root { --bg: #06080c; --card: #0f131c; --accent: #38bdf8; --green: #22c55e; --text: #f1f5f9; --gold: #facc15; --lock: #ef4444; }
+        body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 1rem; box-sizing: border-box; }
         
-        /* Battery Progress Fill */
+        .card { background: var(--card); border: 1px solid #1e293b; padding: 2rem; border-radius: 20px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; }
+        h1 { font-size: 1.3rem; color: var(--accent); margin: 0 0 0.2rem 0; text-transform: uppercase; letter-spacing: 1.5px; }
+        p.subtitle { color: #94a3b8; font-size: 0.8rem; margin-bottom: 1.2rem; }
+
+        /* Day Stepper */
+        .day-stepper { display: flex; align-items: center; justify-content: space-between; background: #000; border: 1px solid #334155; padding: 0.5rem 0.8rem; border-radius: 12px; margin-bottom: 1rem; }
+        .day-stepper button { width: auto; padding: 0.4rem 0.9rem; font-size: 1rem; background: #1e293b; color: var(--text); border: 1px solid #475569; border-radius: 6px; cursor: pointer; }
+        .day-stepper button:hover { background: #334155; }
+        .day-title { font-weight: bold; color: var(--gold); font-size: 0.95rem; font-family: monospace; }
+
+        /* Battery Visual */
+        .battery-container { display: flex; align-items: center; justify-content: center; margin: 1rem 0; }
+        .battery-body { width: 100%; height: 56px; border: 3px solid #334155; border-radius: 12px; padding: 4px; position: relative; background: #000; display: flex; align-items: center; }
+        .battery-tip { width: 10px; height: 24px; background: #334155; border-radius: 0 4px 4px 0; margin-left: 3px; }
         .battery-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #16a34a, var(--green)); border-radius: 6px; transition: width 0.3s ease; box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
         .charging .battery-fill { animation: pulseCharge 1.5s infinite alternate; }
 
-        /* 4 Milestone Charging Blocks Overlaid */
         .battery-blocks { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; }
-        .block { border-right: 2px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 4px; font-size: 0.65rem; font-weight: bold; color: #475569; transition: all 0.3s ease; }
-        .block:last-child { border-right: none; }
-        .block.active { color: #000; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
+        .block { border-right: 2px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 4px; font-size: 0.65rem; font-weight: bold; color: #475569; }
+        .block.active { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
         .block.charged { color: var(--green); font-weight: 900; }
 
-        /* Digital Meter Displays */
-        .charge-percent { font-family: monospace; font-size: 1.2rem; font-weight: bold; color: var(--green); margin-top: 0.5rem; letter-spacing: 1px; }
+        /* Meters */
+        .charge-percent { font-family: monospace; font-size: 1.1rem; font-weight: bold; color: var(--green); margin-top: 0.4rem; letter-spacing: 1px; }
         .timer { font-size: 2.5rem; font-family: monospace; font-weight: bold; color: var(--text); margin: 0.2rem 0; }
-        .badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.78rem; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #334155; }
+        .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #334155; }
 
-        button { background: var(--green); color: #000; border: none; padding: 1.1rem 2rem; font-size: 1.1rem; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 1rem; -webkit-tap-highlight-color: transparent; }
-        button.active { background: #ef4444; color: #fff; }
+        /* Buttons */
+        button.main-btn { background: var(--green); color: #000; border: none; padding: 1.1rem 2rem; font-size: 1.1rem; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 0.8rem; transition: all 0.2s ease; }
+        button.main-btn.active { background: #ef4444; color: #fff; }
+        button.pay-btn { background: var(--gold); color: #000; border: none; padding: 1rem 1.5rem; font-size: 1rem; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 0.8rem; display: none; }
 
-        .metrics { margin-top: 1.2rem; display: grid; gap: 0.5rem; text-align: left; background: #000; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid #1e293b; }
+        .metrics { margin-top: 1rem; display: grid; gap: 0.5rem; text-align: left; background: #000; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid #1e293b; }
         .metric { display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; }
         .metric span:last-child { color: var(--text); font-weight: 600; }
 
-        @keyframes pulseCharge {
-            0% { opacity: 0.85; }
-            100% { opacity: 1; filter: drop-shadow(0 0 8px var(--green)); }
-        }
+        /* Lock Overlay Banner */
+        .lock-shield { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--lock); border-radius: 10px; padding: 0.8rem; margin-top: 1rem; display: none; text-align: center; }
+        .lock-shield p { margin: 0 0 0.5rem 0; color: #fca5a5; font-size: 0.85rem; font-weight: 600; }
+
+        /* Footer Controls */
+        .footer-controls { margin-top: 1.5rem; border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+        .btn-link { background: none; border: none; color: #64748b; font-size: 0.75rem; text-decoration: underline; cursor: pointer; padding: 0; }
+        .btn-link:hover { color: var(--accent); }
+
+        .footnote { margin-top: 1rem; font-size: 0.7rem; color: #475569; text-align: center; font-weight: 500; }
+
+        /* Accreditation Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; box-sizing: border-box; }
+        .modal-content { background: #0f172a; border: 2px solid var(--gold); border-radius: 20px; padding: 2rem; max-width: 480px; text-align: center; box-shadow: 0 0 30px rgba(250, 204, 21, 0.3); }
+        .modal-content h2 { color: var(--gold); font-size: 1.4rem; margin-top: 0; }
+        .modal-content p { color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; }
+
+        @keyframes pulseCharge { 0% { opacity: 0.85; } 100% { opacity: 1; filter: drop-shadow(0 0 8px var(--green)); } }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <h1>Transmutation Unit</h1>
-        <p>112-Day Neuro-Coherency Charging System</p>
+        <h1>Transmutation Engine</h1>
+        <p class="subtitle">KEMP EYE AI 👁️ Neuro-Coherency Protocol</p>
+
+        <!-- Day Selector -->
+        <div class="day-stepper">
+            <button id="prevDayBtn" type="button">&lt;</button>
+            <div class="day-title" id="dayDisplay">DAY 1 OF 112</div>
+            <button id="nextDayBtn" type="button">&gt;</button>
+        </div>
 
         <div class="badge" id="phaseBadge">System Discharged</div>
 
-        <!-- Battery Charging Component -->
+        <!-- Lock Warning Shield -->
+        <div class="lock-shield" id="lockShield">
+            <p id="lockMsg">🔒 Locked Phase: Days 13–22</p>
+            <button class="pay-btn" id="payBtn" type="button">Unlock Phase via Razorpay</button>
+        </div>
+
+        <!-- Battery Visual -->
         <div class="battery-container" id="batteryCasing">
             <div class="battery-body">
                 <div class="battery-fill" id="batteryFill"></div>
@@ -69,192 +104,301 @@
         <div class="charge-percent" id="chargeMeter">0.0% CHARGED</div>
         <div class="timer" id="timer">00:00</div>
 
-        <button id="toggleBtn">Initiate Charge Session</button>
+        <button class="main-btn" id="toggleBtn" type="button">Initiate Session</button>
 
         <div class="metrics">
-            <div class="metric"><span>Frequency Bed:</span><span id="freqMeter">60 Hz Bed + Harmonics</span></div>
-            <div class="metric"><span>Output Intensity:</span><span id="intensityMeter">10%</span></div>
-            <div class="metric"><span>Spatial Vector:</span><span id="spatialMeter">Centered</span></div>
+            <div class="metric"><span>Access Tier:</span><span id="tierTypeMeter">Free Tier (Days 1-12)</span></div>
+            <div class="metric"><span>Carrier Frequency:</span><span id="carrierMeter">174.0 Hz</span></div>
+            <div class="metric"><span>Entrainment Pulse:</span><span id="pulseMeter">1.5 Hz</span></div>
+            <div class="metric"><span>Brain State:</span><span id="stateMeter">Physical Grounding</span></div>
+        </div>
+
+        <!-- Footer Actions & Footnotes -->
+        <div class="footer-controls">
+            <button class="btn-link" id="resetBtn" type="button">Reset Progress to Day 1</button>
+            <button class="btn-link" id="disclaimerBtn" type="button">Health &amp; Safety Disclaimer</button>
+        </div>
+
+        <div class="footnote">
+            @2026 KishanBali/KEMP Wisdom Publications
+        </div>
+    </div>
+
+    <!-- Accreditation Modal (Day 112 Completion) -->
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <h2>KEMP EYE AI 👁️ Accreditation</h2>
+            <p><strong>Neuro-coherency practice on frequency improvement on congratulations on completion!</strong></p>
+            <p>You have successfully completed the full 112-Day Transmutation Sequence across all 10 neural resonance tiers.</p>
+            <button class="main-btn" style="background:var(--gold); color:#000;" onclick="closeModal('completionModal')">Claim Accreditation</button>
+        </div>
+    </div>
+
+    <!-- Health & Safety Disclaimer Modal -->
+    <div class="modal" id="disclaimerModal">
+        <div class="modal-content">
+            <h3 style="color:var(--accent);">Health &amp; Safety Disclaimer</h3>
+            <p style="font-size:0.8rem; text-align:left;">
+                This audio entrainment software uses acoustic brainwave stimulation (solfeggio carriers and low-frequency pulses).
+                <br><br>
+                1. <strong>Epilepsy Warning:</strong> Do not use if you have auditory-triggered epilepsy or photo/sound sensitivity.
+                <br>
+                2. <strong>Machinery:</strong> Do not drive or operate heavy machinery while listening to entrainment sessions.
+                <br>
+                3. <strong>Medical Notice:</strong> This protocol is for relaxation, mental focus, and energetic practice only. It is not intended to diagnose, treat, cure, or prevent any medical or psychological condition.
+            </p>
+            <button class="btn-link" style="color:var(--accent); font-size:0.9rem;" onclick="closeModal('disclaimerModal')">Close Disclaimer</button>
         </div>
     </div>
 
     <script>
+        // State Management
+        let currentDay = parseInt(localStorage.getItem('kemp_current_day')) || 1;
+        let unlockedBlocks = JSON.parse(localStorage.getItem('kemp_unlocked_blocks')) || []; // Blocks 1 to 10
+
         let audioCtx = null;
         let isRunning = false;
         let startTime = 0;
         let timerLoop = null;
 
-        let droneOsc = null, harmonicOsc = null, masterGain = null, filterNode = null, pannerNode = null;
+        let droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null, pannerNode = null;
 
-        const btn = document.getElementById('toggleBtn');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const payBtn = document.getElementById('payBtn');
+        const lockShield = document.getElementById('lockShield');
+        const lockMsg = document.getElementById('lockMsg');
 
-        async function toggleEngine() {
-            if (!isRunning) {
-                try {
-                    if (!audioCtx) {
-                        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-                        audioCtx = new AudioCtxClass();
-                    }
-
-                    if (audioCtx.state === 'suspended') {
-                        await audioCtx.resume();
-                    }
-
-                    masterGain = audioCtx.createGain();
-                    masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-
-                    filterNode = audioCtx.createBiquadFilter();
-                    filterNode.type = 'lowpass';
-                    filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
-
-                    pannerNode = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
-
-                    droneOsc = audioCtx.createOscillator();
-                    droneOsc.type = 'sine';
-                    droneOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
-
-                    harmonicOsc = audioCtx.createOscillator();
-                    harmonicOsc.type = 'triangle';
-                    harmonicOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
-
-                    const harmonicGain = audioCtx.createGain();
-                    harmonicGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-
-                    droneOsc.connect(filterNode);
-                    harmonicOsc.connect(harmonicGain);
-                    harmonicGain.connect(filterNode);
-
-                    if (pannerNode) {
-                        filterNode.connect(pannerNode);
-                        pannerNode.connect(masterGain);
-                    } else {
-                        filterNode.connect(masterGain);
-                    }
-
-                    masterGain.connect(audioCtx.destination);
-
-                    droneOsc.start();
-                    harmonicOsc.start();
-
-                    isRunning = true;
-                    startTime = Date.now();
-                    btn.innerText = "Abort Charging Session";
-                    btn.classList.add('active');
-                    document.getElementById('batteryCasing').classList.add('charging');
-
-                    if (timerLoop) clearInterval(timerLoop);
-                    timerLoop = setInterval(updateEngine, 1000);
-                    updateEngine();
-
-                } catch (e) {
-                    alert('Audio initialization error: ' + e.message);
-                }
-            } else {
-                isRunning = false;
-                if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); }
-                if (harmonicOsc) { harmonicOsc.stop(); harmonicOsc.disconnect(); }
-                if (audioCtx) await audioCtx.suspend();
-
-                clearInterval(timerLoop);
-                btn.innerText = "Resume Charging Session";
-                btn.classList.remove('active');
-                document.getElementById('batteryCasing').classList.remove('charging');
-            }
+        // Calculates Block Index for Day (Days 13-22 -> Block 1, 23-32 -> Block 2 ... 103-112 -> Block 10)
+        function getBlockForDay(day) {
+            if (day <= 12) return 0; // Free
+            return Math.floor((day - 13) / 10) + 1;
         }
 
-        function triggerChime(freq, volume) {
-            if (!audioCtx || audioCtx.state !== 'running') return;
+        function isDayUnlocked(day) {
+            if (day <= 12) return true;
+            const block = getBlockForDay(day);
+            return unlockedBlocks.includes(block);
+        }
+
+        function getDailyAudioProfile(day) {
+            const carrierFreq = 174.0 + (day - 1) * ((963.0 - 174.0) / 111.0);
+            let pulseRate = 1.5;
+            let tierName = "Physical Grounding";
+
+            if (day <= 28) {
+                pulseRate = 1.5 + (day - 1) * ((7.5 - 1.5) / 27.0);
+                tierName = "Physical Grounding (Delta/Theta)";
+            } else if (day <= 56) {
+                pulseRate = 8.0 + (day - 29) * ((14.0 - 8.0) / 27.0);
+                tierName = "Emotional Alignment (Theta/Alpha)";
+            } else if (day <= 84) {
+                pulseRate = 15.0 + (day - 57) * ((25.0 - 15.0) / 27.0);
+                tierName = "Synaptic Expansion (Alpha/Beta)";
+            } else {
+                pulseRate = 26.0 + (day - 85) * ((40.0 - 26.0) / 27.0);
+                tierName = "Full Transmutation (Gamma)";
+            }
+
+            return { carrier: carrierFreq, pulse: pulseRate, tier: tierName };
+        }
+
+        function updateDayUI() {
+            document.getElementById('dayDisplay').innerText = DAY ${currentDay} OF 112;
+            const profile = getDailyAudioProfile(currentDay);
+            document.getElementById('carrierMeter').innerText = ${profile.carrier.toFixed(1)} Hz;
+            document.getElementById('pulseMeter').innerText = ${profile.pulse.toFixed(1)} Hz;
+            document.getElementById('stateMeter').innerText = profile.tier;
+
+            const block = getBlockForDay(currentDay);
+            const unlocked = isDayUnlocked(currentDay);
+
+            if (currentDay <= 12) {
+                document.getElementById('tierTypeMeter').innerText = "12 Days Free Tier";
+                lockShield.style.display = "none";
+                toggleBtn.style.display = "block";
+            } else {
+                const startD = 13 + (block - 1) * 10;
+                const endD = Math.min(112, 12 + block * 10);
+                document.getElementById('tierTypeMeter').innerText = Premium Block ${block} (Days ${startD}-${endD});
+
+                if (unlocked) {
+                    lockShield.style.display = "none";
+                    toggleBtn.style.display = "block";
+                } else {
+                    lockShield.style.display = "block";
+                    lockMsg.innerText = 🔒 Premium Locked: Days ${startD} to ${endD};
+                    payBtn.style.display = "block";
+                    toggleBtn.style.display = "none";
+                    if (isRunning) stopEngine();
+                }
+            }
+            localStorage.setItem('kemp_current_day', currentDay);
+        }
+
+        // Razorpay Payment Handler
+        payBtn.onclick = function() {
+            const block = getBlockForDay(currentDay);
+            const startD = 13 + (block - 1) * 10;
+            const endD = Math.min(112, 12 + block * 10);
+
+            const options = {
+                "key": "rzp_test_YOUR_KEY_HERE", // Replace with your actual Razorpay Key ID
+                "amount": 99900, // Amount in paise (e.g., 999.00 INR)
+                "currency": "INR",
+                "name": "KEMP Wisdom Publications",
+                "description": Unlock Phase Days ${startD}-${endD},
+                "handler": function (response) {
+                    alert("Payment Successful! Key: " + response.razorpay_payment_id);
+                    if (!unlockedBlocks.includes(block)) {
+                        unlockedBlocks.push(block);
+                        localStorage.setItem('kemp_unlocked_blocks', JSON.stringify(unlockedBlocks));
+                    }
+                    updateDayUI();
+                },
+                "theme": { "color": "#38bdf8" }
+            };
+
+            if (window.Razorpay) {
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                // Fallback simulation mode if Razorpay key is unconfigured
+                if (confirm([Razorpay Demo] Unlock Phase for Days ${startD}-${endD}?)) {
+                    unlockedBlocks.push(block);
+                    localStorage.setItem('kemp_unlocked_blocks', JSON.stringify(unlockedBlocks));
+                    updateDayUI();
+                }
+            }
+        };
+
+        // Navigation Controls
+        document.getElementById('prevDayBtn').onclick = () => {
+            if (currentDay > 1) { currentDay--; updateDayUI(); if (isRunning) startEngine(); }
+        };
+        document.getElementById('nextDayBtn').onclick = () => {
+            if (currentDay < 112) { currentDay++; updateDayUI(); if (isRunning) startEngine(); }
+        };
+
+        // Reset & Disclaimer Modal Controls
+        document.getElementById('resetBtn').onclick = () => {
+            if (confirm("Reset all progress back to Day 1? (This will also re-lock premium blocks)")) {
+                localStorage.clear();
+                currentDay = 1;
+                unlockedBlocks = [];
+                updateDayUI();
+            }
+        };
+        document.getElementById('disclaimerBtn').onclick = () => {
+            document.getElementById('disclaimerModal').style.display = "flex";
+        };
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+
+        // Web Audio Synthesis Engine
+        async function startEngine() {
+            if (!isDayUnlocked(currentDay)) return;
+            if (isRunning) stopEngine();
+
+            if (!audioCtx) {
+                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioCtxClass();
+            }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            const profile = getDailyAudioProfile(currentDay);
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
+
+            droneOsc = audioCtx.createOscillator();
+            droneOsc.type = 'sine';
+            droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
+
+            harmonicOsc = audioCtx.createOscillator();
+            harmonicOsc.type = 'triangle';
+            harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
+
+            const harmonicGain = audioCtx.createGain();
+            harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+            pulseOsc = audioCtx.createOscillator();
+            pulseOsc.type = 'sine';
+            pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
+
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            pulseOsc.connect(lfoGain.gain);
+
+            droneOsc.connect(filterNode);
+            harmonicOsc.connect(harmonicGain);
+            harmonicGain.connect(filterNode);
+            filterNode.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+
+            droneOsc.start();
+            harmonicOsc.start();
+            pulseOsc.start();
+
+            isRunning = true;
+            startTime = Date.now();
+            toggleBtn.innerText = "Pause Charging Session";
+            toggleBtn.classList.add('active');
+            document.getElementById('batteryCasing').classList.add('charging');
+
+            if (timerLoop) clearInterval(timerLoop);
+            timerLoop = setInterval(updateEngine, 1000);
+        }
+
+        function stopEngine() {
+            isRunning = false;
             try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                if (droneOsc) droneOsc.stop();
+                if (harmonicOsc) harmonicOsc.stop();
+                if (pulseOsc) pulseOsc.stop();
+            } catch(e) {}
 
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-                gain.gain.setValueAtTime(volume * 0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.5);
-
-                osc.connect(gain);
-                gain.connect(masterGain);
-
-                osc.start();
-                osc.stop(audioCtx.currentTime + 3.6);
-            } catch (e) {}
+            clearInterval(timerLoop);
+            toggleBtn.innerText = "Resume Session";
+            toggleBtn.classList.remove('active');
+            document.getElementById('batteryCasing').classList.remove('charging');
         }
 
         function updateEngine() {
             if (!isRunning) return;
 
-            // 12-Minute Cycle (720s total = 100% Charge)
-            const elapsed = Math.floor((Date.now() - startTime) / 1000) % 720;
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+            // Completion at 12 minutes (720 seconds)
+            if (elapsed >= 720) {
+                stopEngine();
+                if (currentDay === 112) {
+                    document.getElementById('completionModal').style.display = "flex";
+                } else {
+                    alert(Day ${currentDay} Complete! Advancing to Day ${currentDay + 1}.);
+                    currentDay++;
+                    updateDayUI();
+                }
+                return;
+            }
+
             const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
             const secs = String(elapsed % 60).padStart(2, '0');
             document.getElementById('timer').innerText = ${mins}:${secs};
 
-            // Calculate Percentage
             const pct = ((elapsed / 720) * 100).toFixed(1);
             document.getElementById('batteryFill').style.width = ${pct}%;
             document.getElementById('chargeMeter').innerText = ${pct}% CHARGED;
-
-            // Milestone Blocks Glow Logic
-            const b1 = document.getElementById('blk1');
-            const b2 = document.getElementById('blk2');
-            const b3 = document.getElementById('blk3');
-            const b4 = document.getElementById('blk4');
-
-            if (elapsed >= 60) b1.className = "block charged"; else if (elapsed > 0) b1.className = "block active";
-            if (elapsed >= 180) b2.className = "block charged"; else if (elapsed >= 60) b2.className = "block active";
-            if (elapsed >= 360) b3.className = "block charged"; else if (elapsed >= 180) b3.className = "block active";
-            if (elapsed >= 540) b4.className = "block charged"; else if (elapsed >= 360) b4.className = "block active";
-
-            // Spatial Orbit Panning
-            const pan = Math.sin(elapsed / 5);
-            if (pannerNode && pannerNode.pan) {
-                pannerNode.pan.setValueAtTime(pan * 0.75, audioCtx.currentTime);
-            }
-            document.getElementById('spatialMeter').innerText = pan < -0.2 ? 'Left Orbit' : pan > 0.2 ? 'Right Orbit' : 'Centered';
-
-            const badge = document.getElementById('phaseBadge');
-            const freqMeter = document.getElementById('freqMeter');
-            const intensityMeter = document.getElementById('intensityMeter');
-
-            // Phase Switching & Frequency Adjustments
-            if (elapsed < 180) { // Phase 1 (0 - 3 Mins)
-                badge.innerText = "Phase 1: Grounding Charge (0-3m)";
-                freqMeter.innerText = "60 Hz Bed + 220 Hz Harmonic";
-                intensityMeter.innerText = "10%";
-                if (filterNode) filterNode.frequency.setTargetAtTime(600, audioCtx.currentTime, 1);
-
-            } else if (elapsed < 360) { // Phase 2 (3 - 6 Mins)
-                badge.innerText = "Phase 2: Dusk Resonance (3-6m)";
-                freqMeter.innerText = "Sub-Pulse Lowpass Sweeps";
-                intensityMeter.innerText = "30%";
-                if (filterNode) filterNode.frequency.setTargetAtTime(500 + Math.sin(elapsed) * 200, audioCtx.currentTime, 1);
-
-            } else if (elapsed < 540) { // Phase 3 (6 - 9 Mins)
-                badge.innerText = "Phase 3: Synaptic Surge (6-9m)";
-                const intensity = Math.floor(10 + ((elapsed - 360) / 180) * 90);
-                freqMeter.innerText = "11 Synaptic Chimes Active";
-                intensityMeter.innerText = ${intensity}%;
-                if (filterNode) filterNode.frequency.setTargetAtTime(1200, audioCtx.currentTime, 1);
-
-                if (elapsed % 12 === 0) {
-                    const chimeFreq = 432 + ((elapsed % 11) * 28);
-                    triggerChime(chimeFreq, intensity / 100);
-                }
-
-            } else { // Phase 4 (9 - 12 Mins)
-                badge.innerText = "Phase 4: Full Capacity (9-12m)";
-                freqMeter.innerText = "Dual Low-End + 3D Field";
-                intensityMeter.innerText = "100% -> Settled";
-                if (filterNode) filterNode.frequency.setTargetAtTime(500, audioCtx.currentTime, 2);
-            }
         }
 
-        btn.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            toggleEngine();
-        });
+        toggleBtn.onclick = () => { if (!isRunning) startEngine(); else stopEngine(); };
+
+        updateDayUI();
     </script>
 </body>
 </html>

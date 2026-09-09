@@ -12,12 +12,10 @@
         h1 { font-size: 1.3rem; color: var(--accent); margin: 0 0 0.2rem 0; text-transform: uppercase; letter-spacing: 1.5px; }
         p.subtitle { color: #94a3b8; font-size: 0.8rem; margin-bottom: 1.2rem; }
 
-        /* Day Stepper */
         .day-stepper { display: flex; align-items: center; justify-content: space-between; background: #000; border: 1px solid #334155; padding: 0.5rem 0.8rem; border-radius: 12px; margin-bottom: 1rem; }
         .day-stepper button { width: 44px; height: 38px; font-size: 1.1rem; background: #1e293b; color: var(--text); border: 1px solid #475569; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .day-title { font-weight: bold; color: var(--gold); font-size: 0.95rem; font-family: monospace; }
 
-        /* Battery Visual */
         .battery-container { display: flex; align-items: center; justify-content: center; margin: 1rem 0; }
         .battery-body { width: 100%; height: 56px; border: 3px solid #334155; border-radius: 12px; padding: 4px; position: relative; background: #000; display: flex; align-items: center; }
         .battery-tip { width: 10px; height: 24px; background: #334155; border-radius: 0 4px 4px 0; margin-left: 3px; }
@@ -27,12 +25,10 @@
         .battery-blocks { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; box-sizing: border-box; }
         .block { border-right: 2px dashed rgba(255, 255, 255, 0.15); display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 4px; font-size: 0.65rem; font-weight: bold; color: #475569; }
 
-        /* Meters */
         .charge-percent { font-family: monospace; font-size: 1.1rem; font-weight: bold; color: var(--green); margin-top: 0.4rem; letter-spacing: 1px; }
         .timer { font-size: 2.5rem; font-family: monospace; font-weight: bold; color: var(--text); margin: 0.2rem 0; }
         .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; border: 1px solid #334155; }
 
-        /* Main Interactive Button */
         button.main-btn { 
             position: relative;
             z-index: 100;
@@ -49,27 +45,24 @@
             transition: all 0.2s ease; 
             -webkit-tap-highlight-color: transparent; 
             user-select: none;
+            touch-action: manipulation;
         }
         button.main-btn:active { opacity: 0.85; transform: scale(0.98); }
         button.main-btn.active { background: #ef4444; color: #fff; }
         button.pay-btn { background: var(--gold); color: #000; border: none; padding: 1rem 1.5rem; font-size: 1rem; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 0.8rem; display: none; -webkit-tap-highlight-color: transparent; }
 
-        /* Diagnostic Console Log Box */
         #consoleLog { margin-top: 0.8rem; font-family: monospace; font-size: 0.75rem; color: #4ade80; background: #000; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e293b; text-align: left; min-height: 20px; word-break: break-all; }
 
         .metrics { margin-top: 1rem; display: grid; gap: 0.5rem; text-align: left; background: #000; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid #1e293b; }
         .metric { display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; }
         .metric span:last-child { color: var(--text); font-weight: 600; }
 
-        /* Lock Overlay Banner */
         .lock-shield { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--lock); border-radius: 10px; padding: 0.8rem; margin-top: 1rem; display: none; text-align: center; }
         .lock-shield p { margin: 0 0 0.5rem 0; color: #fca5a5; font-size: 0.85rem; font-weight: 600; }
 
-        /* Footer Controls */
         .footer-controls { margin-top: 1.5rem; border-top: 1px solid #1e293b; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
         .btn-link { background: none; border: none; color: #64748b; font-size: 0.75rem; text-decoration: underline; cursor: pointer; padding: 0.4rem; -webkit-tap-highlight-color: transparent; }
 
-        /* Modals */
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; box-sizing: border-box; pointer-events: none; }
         .modal.open { display: flex; pointer-events: auto; }
         .modal-content { background: #0f172a; border: 2px solid var(--gold); border-radius: 20px; padding: 2rem; max-width: 480px; width:100%; text-align: center; box-shadow: 0 0 30px rgba(250, 204, 21, 0.3); box-sizing: border-box; }
@@ -83,7 +76,6 @@
         <h1>Transmutation Engine</h1>
         <p class="subtitle">KEMP EYE AI 👁️ Neuro-Coherency Protocol</p>
 
-        <!-- Day Selector -->
         <div class="day-stepper">
             <button id="prevDayBtn" type="button" aria-label="Previous Day">&lt;</button>
             <div class="day-title" id="dayDisplay">DAY 1 OF 112</div>
@@ -92,13 +84,11 @@
 
         <div class="badge" id="phaseBadge">System Discharged</div>
 
-        <!-- Lock Warning Shield -->
         <div class="lock-shield" id="lockShield">
             <p id="lockMsg">🔒 Locked Phase: Days 13–22</p>
             <button class="pay-btn" id="payBtn" type="button">Unlock Phase via Razorpay</button>
         </div>
 
-        <!-- Battery Visual -->
         <div class="battery-container" id="batteryCasing">
             <div class="battery-body">
                 <div class="battery-fill" id="batteryFill"></div>
@@ -115,10 +105,8 @@
         <div class="charge-percent" id="chargeMeter">0.0% CHARGED</div>
         <div class="timer" id="timer">00:00</div>
 
-        <!-- Main Button -->
         <button class="main-btn" id="toggleBtn" type="button">Initiate Charge Session</button>
 
-        <!-- Live Diagnostic Console -->
         <div id="consoleLog">STATUS: Engine initialized</div>
 
         <div class="metrics">
@@ -128,14 +116,12 @@
             <div class="metric"><span>Brain State:</span><span id="stateMeter">Physical Grounding</span></div>
         </div>
 
-        <!-- Footer Actions -->
         <div class="footer-controls">
             <button class="btn-link" id="resetBtn" type="button">Reset Progress to Day 1</button>
             <button class="btn-link" id="disclaimerBtn" type="button">Health &amp; Safety Disclaimer</button>
         </div>
     </div>
 
-    <!-- Accreditation Modal -->
     <div class="modal" id="completionModal">
         <div class="modal-content">
             <h2 style="color:var(--gold)">KEMP EYE AI 👁️ Accreditation</h2>
@@ -144,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Disclaimer Modal -->
     <div class="modal" id="disclaimerModal">
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0;">Health &amp; Safety Disclaimer</h3>
@@ -158,9 +143,8 @@
     </div>
 
     <script>
-        // Catch any unhandled page script crashes and report to console
         window.onerror = function(msg, url, line) {
-            sysLog("CRITICAL SCRIPT ERROR: " + msg + " (Line " + line + ")", true);
+            sysLog("CRITICAL ERROR: " + msg + " (Line " + line + ")", true);
             return false;
         };
 
@@ -172,7 +156,6 @@
             }
         }
 
-        // Memory storage fallback for Incognito mode
         const memStore = {};
         function safeGet(key, defaultVal) {
             try {
@@ -272,21 +255,38 @@
             safeSet('kemp_current_day', currentDay);
         }
 
-        // MUST RUN SYNCHRONOUSLY IN DIRECT CLICK STACK
-        function initAudioSync() {
+        // Force Unlock audio buffer specifically for iOS Safari
+        function forceUnlockAudio() {
+            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtxClass) {
+                throw new Error("Web Audio API not supported by browser");
+            }
+
             if (!audioCtx) {
-                const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtxClass) {
-                    throw new Error("Web Audio API not supported");
-                }
                 audioCtx = new AudioCtxClass();
             }
+
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+
+            // Play a 1-frame silent buffer to bypass mobile hardware silent switches
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
         }
 
-        function toggleSession() {
+        function handleUserAction(e) {
+            if (e) e.preventDefault();
+
+            if (window.location.protocol === 'file:') {
+                sysLog("BLOCKED: Cannot run directly from file://. Use HTTP/HTTPS server.", true);
+                alert("Browsers block audio engine execution when opened directly as a local file (file://).\n\nPlease host this on GitHub Pages, Netlify, or a local HTTP server.");
+                return;
+            }
+
             if (!isDayUnlocked(currentDay)) {
                 sysLog("Current day is locked.", true);
                 return;
@@ -299,10 +299,9 @@
             }
 
             try {
-                // Initialize audio synchronously
-                initAudioSync();
+                forceUnlockAudio();
                 startEngine();
-                sysLog("Session Active - Sound Playing", false);
+                sysLog(Session Active (${audioCtx.state.toUpperCase()}) - Sound Playing, false);
             } catch (err) {
                 sysLog("Audio Error: " + err.message, true);
                 stopEngine();
@@ -315,11 +314,11 @@
             const profile = getDailyAudioProfile(currentDay);
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
 
             filterNode = audioCtx.createBiquadFilter();
             filterNode.type = 'lowpass';
-            filterNode.frequency.setValueAtTime(600, audioCtx.currentTime);
+            filterNode.frequency.setValueAtTime(800, audioCtx.currentTime);
 
             droneOsc = audioCtx.createOscillator();
             droneOsc.type = 'sine';
@@ -330,14 +329,14 @@
             harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
 
             const harmonicGain = audioCtx.createGain();
-            harmonicGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            harmonicGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
             pulseOsc = audioCtx.createOscillator();
             pulseOsc.type = 'sine';
             pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
 
             const lfoGain = audioCtx.createGain();
-            lfoGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            lfoGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
 
             pulseOsc.connect(lfoGain);
             lfoGain.connect(masterGain.gain);
@@ -421,7 +420,6 @@
             updateDayUI();
             if (isRunning) {
                 stopEngine();
-                toggleSession();
             }
         }
 
@@ -431,24 +429,18 @@
             else el.classList.remove('open');
         }
 
-        // Single Event Initialization
         window.onload = function() {
             updateDayUI();
 
-            document.getElementById('toggleBtn').onclick = function(e) {
-                e.preventDefault();
-                toggleSession();
-            };
+            if (window.location.protocol === 'file:') {
+                sysLog("ERR: file:// detected. Must serve via HTTP/HTTPS.", true);
+            }
 
-            document.getElementById('prevDayBtn').onclick = function(e) {
-                e.preventDefault();
-                changeDay(-1);
-            };
+            const toggleBtn = document.getElementById('toggleBtn');
+            toggleBtn.addEventListener('pointerdown', handleUserAction);
 
-            document.getElementById('nextDayBtn').onclick = function(e) {
-                e.preventDefault();
-                changeDay(1);
-            };
+            document.getElementById('prevDayBtn').onclick = function(e) { e.preventDefault(); changeDay(-1); };
+            document.getElementById('nextDayBtn').onclick = function(e) { e.preventDefault(); changeDay(1); };
 
             document.getElementById('resetBtn').onclick = function(e) {
                 e.preventDefault();
@@ -461,20 +453,9 @@
                 }
             };
 
-            document.getElementById('disclaimerBtn').onclick = function(e) {
-                e.preventDefault();
-                toggleModal('disclaimerModal', true);
-            };
-
-            document.getElementById('closeDisclaimerBtn').onclick = function(e) {
-                e.preventDefault();
-                toggleModal('disclaimerModal', false);
-            };
-
-            document.getElementById('closeCompletionBtn').onclick = function(e) {
-                e.preventDefault();
-                toggleModal('completionModal', false);
-            };
+            document.getElementById('disclaimerBtn').onclick = function(e) { e.preventDefault(); toggleModal('disclaimerModal', true); };
+            document.getElementById('closeDisclaimerBtn').onclick = function(e) { e.preventDefault(); toggleModal('disclaimerModal', false); };
+            document.getElementById('closeCompletionBtn').onclick = function(e) { e.preventDefault(); toggleModal('completionModal', false); };
         };
     </script>
 </body>

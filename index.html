@@ -5,180 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transmutation Engine</title>
     <style>
-        :root { --bg: #0a0c10; --card: #12161f; --accent: #38bdf8; --green: #22c55e; --text: #f1f5f9; }
-        body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: var(--card); border: 1px solid #1e293b; padding: 2.5rem; border-radius: 20px; text-align: center; max-width: 420px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-        h1 { font-size: 1.6rem; color: var(--accent); margin: 0 0 0.5rem 0; }
-        p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.8rem; line-height: 1.4; }
-        .timer { font-size: 2.8rem; font-family: monospace; font-weight: bold; color: var(--green); margin: 0.8rem 0; text-shadow: 0 0 20px rgba(34, 197, 94, 0.2); }
-        .badge { display: inline-block; padding: 0.4rem 1rem; border-radius: 9999px; background: #1e293b; color: var(--accent); font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; border: 1px solid #334155; }
-        button { background: var(--green); color: #000; border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s ease; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        button.active { background: #ef4444; color: #fff; }
-        .controls { margin-top: 1.5rem; display: grid; gap: 0.6rem; }
-        .metric { display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; }
-        .metric span:last-child { color: var(--text); font-weight: 600; }
+        body { background: #0a0c10; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        button { background: #22c55e; color: #000; border: none; padding: 1.5rem 2.5rem; font-size: 1.2rem; font-weight: bold; border-radius: 12px; cursor: pointer; }
+        button.playing { background: #ef4444; color: #fff; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Transmutation Engine</h1>
-        <p>112-Day Neuro-Coherency Audio System<br><small>Generative Web Audio API Prototype</small></p>
-        <div class="badge" id="phaseBadge">Phase 1: Grounding & Stillness</div>
-        <div class="timer" id="timer">00:00</div>
-        
-        <!-- Direct Inline Click Handler -->
-        <button id="toggleBtn" onclick="toggleEngine()">Start Audio Session</button>
-        
-        <div class="controls">
-            <div class="metric"><span>Frequency Bed:</span><span id="freqMeter">220 Hz Warm Tone + Sub</span></div>
-            <div class="metric"><span>Intensity Level:</span><span id="intensityMeter">10%</span></div>
-            <div class="metric"><span>Spatial Field:</span><span id="spatialMeter">Center</span></div>
-        </div>
-    </div>
+
+    <button id="btn" onclick="toggleAudio()">Start Audio Session</button>
 
     <script>
-        let audioCtx = null;
-        let isRunning = false;
-        let startTime = 0;
-        let timerLoop = null;
-        let droneOsc = null, audibleOsc = null, masterGain = null, mainFilter = null, panner = null;
+        let ctx = null, osc = null, playing = false;
 
-        function toggleEngine() {
-            const btn = document.getElementById('toggleBtn');
-
-            if (!isRunning) {
-                try {
-                    // Initialize Audio Context directly inside click gesture
-                    if (!audioCtx) {
-                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                        audioCtx = new AudioContextClass();
-
-                        masterGain = audioCtx.createGain();
-                        masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-
-                        mainFilter = audioCtx.createBiquadFilter();
-                        mainFilter.type = 'lowpass';
-                        mainFilter.frequency.setValueAtTime(800, audioCtx.currentTime);
-
-                        // 60 Hz Sub-Drone
-                        droneOsc = audioCtx.createOscillator();
-                        droneOsc.type = 'sine';
-                        droneOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
-
-                        // 220 Hz Warm Audible Tone (Ensures sound plays on all speakers)
-                        audibleOsc = audioCtx.createOscillator();
-                        audibleOsc.type = 'triangle';
-                        audibleOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
-
-                        const audibleGain = audioCtx.createGain();
-                        audibleGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-
-                        droneOsc.connect(mainFilter);
-                        audibleOsc.connect(audibleGain);
-                        audibleGain.connect(mainFilter);
-
-                        // Optional 3D Stereo Panner
-                        if (audioCtx.createStereoPanner) {
-                            panner = audioCtx.createStereoPanner();
-                            mainFilter.connect(panner);
-                            panner.connect(masterGain);
-                        } else {
-                            mainFilter.connect(masterGain);
-                        }
-
-                        masterGain.connect(audioCtx.destination);
-
-                        droneOsc.start();
-                        audibleOsc.start();
-                    }
-
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-
-                    isRunning = true;
-                    startTime = Date.now();
-                    btn.innerText = "Stop Session";
-                    btn.classList.add('active');
-
-                    if (timerLoop) clearInterval(timerLoop);
-                    timerLoop = setInterval(updateEngine, 1000);
-                    updateEngine();
-                } catch (err) {
-                    alert("Audio playback error: " + err.message);
-                }
-            } else {
-                isRunning = false;
-                if (audioCtx) audioCtx.suspend();
-                clearInterval(timerLoop);
-                btn.innerText = "Resume Session";
-                btn.classList.remove('active');
+        function toggleAudio() {
+            const btn = document.getElementById('btn');
+            
+            // 1. Create audio context directly inside user tap
+            if (!ctx) {
+                ctx = new (window.AudioContext || window.webkitAudioContext)();
             }
-        }
 
-        function triggerChime(freq, volume) {
-            if (!audioCtx || audioCtx.state !== 'running') return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-                gain.gain.setValueAtTime(volume * 0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.8);
-
+            if (!playing) {
+                if (ctx.state === 'suspended') ctx.resume();
+                
+                // 2. Play audible 440 Hz tone
+                osc = ctx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.value = 440;
+                
+                const gain = ctx.createGain();
+                gain.gain.value = 0.2;
+                
                 osc.connect(gain);
-                gain.connect(masterGain);
-
+                gain.connect(ctx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 4.0);
-            } catch (e) {}
-        }
 
-        function updateEngine() {
-            if (!isRunning) return;
-            const elapsed = Math.floor((Date.now() - startTime) / 1000) % 720;
-            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const secs = String(elapsed % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = ${mins}:${secs};
-
-            // Spatial Panning Automation
-            const pan = Math.sin(elapsed / 6);
-            if (panner && panner.pan) panner.pan.setValueAtTime(pan * 0.75, audioCtx.currentTime);
-            document.getElementById('spatialMeter').innerText = pan < -0.2 ? 'Left Orbit' : pan > 0.2 ? 'Right Orbit' : 'Centered';
-
-            const badge = document.getElementById('phaseBadge');
-            const freqMeter = document.getElementById('freqMeter');
-            const intensityMeter = document.getElementById('intensityMeter');
-
-            if (elapsed < 180) { // Phase 1
-                badge.innerText = "Phase 1: Grounding & Stillness";
-                freqMeter.innerText = "220 Hz Warm Tone + Sub";
-                intensityMeter.innerText = "10%";
-                if (mainFilter) mainFilter.frequency.setTargetAtTime(800, audioCtx.currentTime, 1);
-            } else if (elapsed < 360) { // Phase 2
-                badge.innerText = "Phase 2: Dusk Observation";
-                freqMeter.innerText = "Sub-Pulse Sweeps";
-                intensityMeter.innerText = "30%";
-                if (mainFilter) mainFilter.frequency.setTargetAtTime(600 + Math.sin(elapsed) * 200, audioCtx.currentTime, 1);
-            } else if (elapsed < 540) { // Phase 3
-                badge.innerText = "Phase 3: Synaptic Expansion";
-                const intensity = Math.floor(10 + ((elapsed - 360) / 180) * 90);
-                freqMeter.innerText = "Chimes 1–11 Active";
-                intensityMeter.innerText = ${intensity}%;
-                if (mainFilter) mainFilter.frequency.setTargetAtTime(1400, audioCtx.currentTime, 1);
-
-                if (elapsed % 12 === 0) {
-                    const chimeFreq = 432 + ((elapsed % 11) * 28);
-                    triggerChime(chimeFreq, intensity / 100);
-                }
-            } else { // Phase 4
-                badge.innerText = "Phase 4: Spatial Convergence";
-                freqMeter.innerText = "Dual Low-End + 3D Field";
-                intensityMeter.innerText = "100% -> Settling";
-                if (mainFilter) mainFilter.frequency.setTargetAtTime(600, audioCtx.currentTime, 2);
+                playing = true;
+                btn.innerText = "Stop Audio Session";
+                btn.classList.add('playing');
+            } else {
+                if (osc) osc.stop();
+                playing = false;
+                btn.innerText = "Start Audio Session";
+                btn.classList.remove('playing');
             }
         }
     </script>

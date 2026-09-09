@@ -170,7 +170,7 @@
         var RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY_HERE";
 
         window.onerror = function(msg, url, line) {
-            sysLog("CRITICAL ERROR: " + msg + " (Line " + line + ")", true);
+            sysLog("ERR: " + msg + " (L" + line + ")", true);
             return false;
         };
 
@@ -212,7 +212,7 @@
         var elapsedSeconds = 0;
         var timerLoop = null;
 
-        var droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null;
+        var droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null;
 
         function getBlockForDay(day) {
             if (day <= 12) return 0;
@@ -282,26 +282,6 @@
             renderTimerUI();
         }
 
-        async function ensureAudioContextReady() {
-            var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtxClass) throw new Error("Web Audio API not supported");
-            
-            if (!audioCtx) {
-                audioCtx = new AudioCtxClass();
-            }
-            
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-
-            // Play short buffer to guarantee audio hardware unlock
-            var buffer = audioCtx.createBuffer(1, 1, 22050);
-            var source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audioCtx.destination);
-            source.start(0);
-        }
-
         async function handleUserAction(e) {
             if (e) e.preventDefault();
 
@@ -317,56 +297,58 @@
             }
 
             try {
-                await ensureAudioContextReady();
+                var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtxClass) {
+                    sysLog("Web Audio API not supported", true);
+                    return;
+                }
+
+                if (!audioCtx) {
+                    audioCtx = new AudioCtxClass();
+                }
+
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
                 startEngine();
-                sysLog("Session Active (" + audioCtx.state.toUpperCase() + ") - Sound Playing", false);
+                sysLog("Session Active - Playing", false);
             } catch (err) {
-                sysLog("Audio Error: " + err.message, true);
+                sysLog("Error: " + err.message, true);
                 stopEngine();
             }
         }
 
         function startEngine() {
-            if (!audioCtx) return;
-
-            // Stop any leftover nodes before starting new ones
-            cleanupAudioNodes();
+            // Clean up any old nodes before re-instantiating
+            stopEngineNodesOnly();
 
             var profile = getDailyAudioProfile(currentDay);
 
             masterGain = audioCtx.createGain();
             masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-
-            filterNode = audioCtx.createBiquadFilter();
-            filterNode.type = 'lowpass';
-            filterNode.frequency.setValueAtTime(800, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
 
             droneOsc = audioCtx.createOscillator();
             droneOsc.type = 'sine';
             droneOsc.frequency.setValueAtTime(profile.carrier, audioCtx.currentTime);
+            droneOsc.connect(masterGain);
 
             harmonicOsc = audioCtx.createOscillator();
             harmonicOsc.type = 'triangle';
             harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
-
             var harmonicGain = audioCtx.createGain();
             harmonicGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            harmonicOsc.connect(harmonicGain);
+            harmonicGain.connect(masterGain);
 
             pulseOsc = audioCtx.createOscillator();
             pulseOsc.type = 'sine';
             pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
-
             var lfoGain = audioCtx.createGain();
             lfoGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-
             pulseOsc.connect(lfoGain);
             lfoGain.connect(masterGain.gain);
-
-            droneOsc.connect(filterNode);
-            harmonicOsc.connect(harmonicGain);
-            harmonicGain.connect(filterNode);
-            filterNode.connect(masterGain);
-            masterGain.connect(audioCtx.destination);
 
             droneOsc.start();
             harmonicOsc.start();
@@ -387,18 +369,20 @@
             timerLoop = setInterval(updateEngine, 1000);
         }
 
-        function cleanupAudioNodes() {
+        function stopEngineNodesOnly() {
             try { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); } } catch(e) {}
             try { if (harmonicOsc) { harmonicOsc.stop(); harmonicOsc.disconnect(); } } catch(e) {}
             try { if (pulseOsc) { pulseOsc.stop(); pulseOsc.disconnect(); } } catch(e) {}
+            try { if (masterGain) { masterGain.disconnect(); } } catch(e) {}
             droneOsc = null;
             harmonicOsc = null;
             pulseOsc = null;
+            masterGain = null;
         }
 
         function stopEngine() {
             isRunning = false;
-            cleanupAudioNodes();
+            stopEngineNodesOnly();
 
             if (timerLoop) clearInterval(timerLoop);
             

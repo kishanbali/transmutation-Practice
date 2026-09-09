@@ -140,7 +140,6 @@
             <button class="btn-link" id="disclaimerBtn" type="button">Health Disclaimer</button>
         </div>
 
-        <!-- Footnotes / Copyright section -->
         <div class="footnotes">
             &copy; 2026 KishanBali/KEMP Wisdom Publications<br>
             All Rights Reserved
@@ -283,12 +282,19 @@
             renderTimerUI();
         }
 
-        function forceUnlockAudio() {
+        async function ensureAudioContextReady() {
             var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
             if (!AudioCtxClass) throw new Error("Web Audio API not supported");
-            if (!audioCtx) audioCtx = new AudioCtxClass();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (!audioCtx) {
+                audioCtx = new AudioCtxClass();
+            }
+            
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
 
+            // Play short buffer to guarantee audio hardware unlock
             var buffer = audioCtx.createBuffer(1, 1, 22050);
             var source = audioCtx.createBufferSource();
             source.buffer = buffer;
@@ -296,7 +302,7 @@
             source.start(0);
         }
 
-        function handleUserAction(e) {
+        async function handleUserAction(e) {
             if (e) e.preventDefault();
 
             if (!isDayUnlocked(currentDay)) {
@@ -311,7 +317,7 @@
             }
 
             try {
-                forceUnlockAudio();
+                await ensureAudioContextReady();
                 startEngine();
                 sysLog("Session Active (" + audioCtx.state.toUpperCase() + ") - Sound Playing", false);
             } catch (err) {
@@ -322,6 +328,9 @@
 
         function startEngine() {
             if (!audioCtx) return;
+
+            // Stop any leftover nodes before starting new ones
+            cleanupAudioNodes();
 
             var profile = getDailyAudioProfile(currentDay);
 
@@ -378,13 +387,18 @@
             timerLoop = setInterval(updateEngine, 1000);
         }
 
+        function cleanupAudioNodes() {
+            try { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); } } catch(e) {}
+            try { if (harmonicOsc) { harmonicOsc.stop(); harmonicOsc.disconnect(); } } catch(e) {}
+            try { if (pulseOsc) { pulseOsc.stop(); pulseOsc.disconnect(); } } catch(e) {}
+            droneOsc = null;
+            harmonicOsc = null;
+            pulseOsc = null;
+        }
+
         function stopEngine() {
             isRunning = false;
-            try {
-                if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); }
-                if (harmonicOsc) { harmonicOsc.stop(); harmonicOsc.disconnect(); }
-                if (pulseOsc) { pulseOsc.stop(); pulseOsc.disconnect(); }
-            } catch(e) {}
+            cleanupAudioNodes();
 
             if (timerLoop) clearInterval(timerLoop);
             

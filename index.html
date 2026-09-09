@@ -149,18 +149,18 @@
         };
 
         function sysLog(msg, isError) {
-            const el = document.getElementById('consoleLog');
+            var el = document.getElementById('consoleLog');
             if (el) {
                 el.style.color = isError ? "#f87171" : "#4ade80";
                 el.innerText = "STATUS: " + msg;
             }
         }
 
-        const memStore = {};
+        var memStore = {};
         function safeGet(key, defaultVal) {
             try {
                 if (window.localStorage) {
-                    const v = window.localStorage.getItem(key);
+                    var v = window.localStorage.getItem(key);
                     return v !== null ? v : defaultVal;
                 }
             } catch(e) {}
@@ -177,16 +177,16 @@
             memStore[key] = String(val);
         }
 
-        let currentDay = parseInt(safeGet('kemp_current_day', '1')) || 1;
-        let unlockedBlocks = [];
+        var currentDay = parseInt(safeGet('kemp_current_day', '1')) || 1;
+        var unlockedBlocks = [];
         try { unlockedBlocks = JSON.parse(safeGet('kemp_unlocked_blocks', '[]')) || []; } catch(e) {}
 
-        let audioCtx = null;
-        let isRunning = false;
-        let startTime = 0;
-        let timerLoop = null;
+        var audioCtx = null;
+        var isRunning = false;
+        var startTime = 0;
+        var timerLoop = null;
 
-        let droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null;
+        var droneOsc = null, harmonicOsc = null, pulseOsc = null, masterGain = null, filterNode = null;
 
         function getBlockForDay(day) {
             if (day <= 12) return 0;
@@ -195,13 +195,13 @@
 
         function isDayUnlocked(day) {
             if (day <= 12) return true;
-            return unlockedBlocks.includes(getBlockForDay(day));
+            return unlockedBlocks.indexOf(getBlockForDay(day)) !== -1;
         }
 
         function getDailyAudioProfile(day) {
-            const carrierFreq = 174.0 + (day - 1) * ((963.0 - 174.0) / 111.0);
-            let pulseRate = 1.5;
-            let tierName = "Physical Grounding";
+            var carrierFreq = 174.0 + (day - 1) * ((963.0 - 174.0) / 111.0);
+            var pulseRate = 1.5;
+            var tierName = "Physical Grounding";
 
             if (day <= 28) {
                 pulseRate = 1.5 + (day - 1) * ((7.5 - 1.5) / 27.0);
@@ -221,32 +221,32 @@
         }
 
         function updateDayUI() {
-            document.getElementById('dayDisplay').innerText = DAY ${currentDay} OF 112;
-            const profile = getDailyAudioProfile(currentDay);
-            document.getElementById('carrierMeter').innerText = ${profile.carrier.toFixed(1)} Hz;
-            document.getElementById('pulseMeter').innerText = ${profile.pulse.toFixed(1)} Hz;
+            document.getElementById('dayDisplay').innerText = "DAY " + currentDay + " OF 112";
+            var profile = getDailyAudioProfile(currentDay);
+            document.getElementById('carrierMeter').innerText = profile.carrier.toFixed(1) + " Hz";
+            document.getElementById('pulseMeter').innerText = profile.pulse.toFixed(1) + " Hz";
             document.getElementById('stateMeter').innerText = profile.tier;
 
-            const block = getBlockForDay(currentDay);
-            const unlocked = isDayUnlocked(currentDay);
-            const toggleBtn = document.getElementById('toggleBtn');
-            const lockShield = document.getElementById('lockShield');
+            var block = getBlockForDay(currentDay);
+            var unlocked = isDayUnlocked(currentDay);
+            var toggleBtn = document.getElementById('toggleBtn');
+            var lockShield = document.getElementById('lockShield');
 
             if (currentDay <= 12) {
                 document.getElementById('tierTypeMeter').innerText = "12 Days Free Tier";
                 lockShield.style.display = "none";
                 toggleBtn.style.display = "block";
             } else {
-                const startD = 13 + (block - 1) * 10;
-                const endD = Math.min(112, 12 + block * 10);
-                document.getElementById('tierTypeMeter').innerText = Premium Block ${block} (Days ${startD}-${endD});
+                var startD = 13 + (block - 1) * 10;
+                var endD = Math.min(112, 12 + block * 10);
+                document.getElementById('tierTypeMeter').innerText = "Premium Block " + block + " (Days " + startD + "-" + endD + ")";
 
                 if (unlocked) {
                     lockShield.style.display = "none";
                     toggleBtn.style.display = "block";
                 } else {
                     lockShield.style.display = "block";
-                    document.getElementById('lockMsg').innerText = 🔒 Premium Locked: Days ${startD} to ${endD};
+                    document.getElementById('lockMsg').innerText = "🔒 Premium Locked: Days " + startD + " to " + endD;
                     document.getElementById('payBtn').style.display = "block";
                     toggleBtn.style.display = "none";
                     if (isRunning) stopEngine();
@@ -255,9 +255,8 @@
             safeSet('kemp_current_day', currentDay);
         }
 
-        // Force Unlock audio buffer specifically for iOS Safari
         function forceUnlockAudio() {
-            const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+            var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
             if (!AudioCtxClass) {
                 throw new Error("Web Audio API not supported by browser");
             }
@@ -270,9 +269,8 @@
                 audioCtx.resume();
             }
 
-            // Play a 1-frame silent buffer to bypass mobile hardware silent switches
-            const buffer = audioCtx.createBuffer(1, 1, 22050);
-            const source = audioCtx.createBufferSource();
+            var buffer = audioCtx.createBuffer(1, 1, 22050);
+            var source = audioCtx.createBufferSource();
             source.buffer = buffer;
             source.connect(audioCtx.destination);
             source.start(0);
@@ -280,12 +278,6 @@
 
         function handleUserAction(e) {
             if (e) e.preventDefault();
-
-            if (window.location.protocol === 'file:') {
-                sysLog("BLOCKED: Cannot run directly from file://. Use HTTP/HTTPS server.", true);
-                alert("Browsers block audio engine execution when opened directly as a local file (file://).\n\nPlease host this on GitHub Pages, Netlify, or a local HTTP server.");
-                return;
-            }
 
             if (!isDayUnlocked(currentDay)) {
                 sysLog("Current day is locked.", true);
@@ -301,7 +293,7 @@
             try {
                 forceUnlockAudio();
                 startEngine();
-                sysLog(Session Active (${audioCtx.state.toUpperCase()}) - Sound Playing, false);
+                sysLog("Session Active (" + audioCtx.state.toUpperCase() + ") - Sound Playing", false);
             } catch (err) {
                 sysLog("Audio Error: " + err.message, true);
                 stopEngine();
@@ -311,7 +303,7 @@
         function startEngine() {
             if (!audioCtx) return;
 
-            const profile = getDailyAudioProfile(currentDay);
+            var profile = getDailyAudioProfile(currentDay);
 
             masterGain = audioCtx.createGain();
             masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
@@ -328,14 +320,14 @@
             harmonicOsc.type = 'triangle';
             harmonicOsc.frequency.setValueAtTime(profile.carrier * 1.5, audioCtx.currentTime);
 
-            const harmonicGain = audioCtx.createGain();
+            var harmonicGain = audioCtx.createGain();
             harmonicGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
             pulseOsc = audioCtx.createOscillator();
             pulseOsc.type = 'sine';
             pulseOsc.frequency.setValueAtTime(profile.pulse, audioCtx.currentTime);
 
-            const lfoGain = audioCtx.createGain();
+            var lfoGain = audioCtx.createGain();
             lfoGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
 
             pulseOsc.connect(lfoGain);
@@ -354,13 +346,13 @@
             isRunning = true;
             startTime = Date.now();
             
-            const toggleBtn = document.getElementById('toggleBtn');
+            var toggleBtn = document.getElementById('toggleBtn');
             if (toggleBtn) {
                 toggleBtn.innerText = "Pause Charge Session";
                 toggleBtn.classList.add('active');
             }
             
-            const casing = document.getElementById('batteryCasing');
+            var casing = document.getElementById('batteryCasing');
             if (casing) casing.classList.add('charging');
 
             if (timerLoop) clearInterval(timerLoop);
@@ -377,20 +369,20 @@
 
             if (timerLoop) clearInterval(timerLoop);
             
-            const toggleBtn = document.getElementById('toggleBtn');
+            var toggleBtn = document.getElementById('toggleBtn');
             if (toggleBtn) {
                 toggleBtn.innerText = "Resume Charge Session";
                 toggleBtn.classList.remove('active');
             }
             
-            const casing = document.getElementById('batteryCasing');
+            var casing = document.getElementById('batteryCasing');
             if (casing) casing.classList.remove('charging');
         }
 
         function updateEngine() {
             if (!isRunning) return;
 
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            var elapsed = Math.floor((Date.now() - startTime) / 1000);
 
             if (elapsed >= 720) {
                 stopEngine();
@@ -398,20 +390,22 @@
                 if (currentDay === 112) {
                     toggleModal('completionModal', true);
                 } else {
-                    alert(Day ${currentDay} Complete! Advancing to Day ${currentDay + 1}.);
+                    alert("Day " + currentDay + " Complete! Advancing to Day " + (currentDay + 1) + ".");
                     currentDay++;
                     updateDayUI();
                 }
                 return;
             }
 
-            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const secs = String(elapsed % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = ${mins}:${secs};
+            var mins = String(Math.floor(elapsed / 60));
+            if (mins.length < 2) mins = "0" + mins;
+            var secs = String(elapsed % 60);
+            if (secs.length < 2) secs = "0" + secs;
+            document.getElementById('timer').innerText = mins + ":" + secs;
 
-            const pct = ((elapsed / 720) * 100).toFixed(1);
-            document.getElementById('batteryFill').style.width = ${pct}%;
-            document.getElementById('chargeMeter').innerText = ${pct}% CHARGED;
+            var pct = ((elapsed / 720) * 100).toFixed(1);
+            document.getElementById('batteryFill').style.width = pct + "%";
+            document.getElementById('chargeMeter').innerText = pct + "% CHARGED";
         }
 
         function changeDay(delta) {
@@ -424,7 +418,7 @@
         }
 
         function toggleModal(id, open) {
-            const el = document.getElementById(id);
+            var el = document.getElementById(id);
             if (open) el.classList.add('open');
             else el.classList.remove('open');
         }
@@ -432,12 +426,8 @@
         window.onload = function() {
             updateDayUI();
 
-            if (window.location.protocol === 'file:') {
-                sysLog("ERR: file:// detected. Must serve via HTTP/HTTPS.", true);
-            }
-
-            const toggleBtn = document.getElementById('toggleBtn');
-            toggleBtn.addEventListener('pointerdown', handleUserAction);
+            var toggleBtn = document.getElementById('toggleBtn');
+            toggleBtn.onclick = handleUserAction;
 
             document.getElementById('prevDayBtn').onclick = function(e) { e.preventDefault(); changeDay(-1); };
             document.getElementById('nextDayBtn').onclick = function(e) { e.preventDefault(); changeDay(1); };
